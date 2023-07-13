@@ -1,4 +1,3 @@
-from random import choices
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -43,9 +42,9 @@ class PhoneNumberVerificationAPIView(APIView):
 
     @swagger_auto_schema(
         request_body=PhoneNumberSerializer,
-        operation_description="This endpoint verify code from user phone number.",
+        operation_description="This endpoint verify code for user phone number.",
         responses={
-            200: 'Phone number verified successfully.',
+            200: 'Tokens',
             400: 'Please enter the correct verification code.'
         }
     )
@@ -57,11 +56,11 @@ class PhoneNumberVerificationAPIView(APIView):
             )
         verification_code = request.data.get('verification_code')
         if verification_code == user.verification_code:
-            user.is_verified = True
-            user.save()
+            if not user.is_verified:
+                user.is_verified = True
+                user.save()
             refresh = RefreshToken.for_user(user)
             return Response({
-                'message': 'Phone number verified successfully.',
                 'refresh': str(refresh),
                 'access': str(refresh.access_token)
                 }, status=status.HTTP_200_OK
@@ -90,5 +89,34 @@ class SetBirthDayAPIView(APIView):
         serializer.save()
         return Response(
             {"message": "Birthday successfully added."},
+            status=status.HTTP_200_OK
+        )
+
+
+class SendCodeAPIView(APIView):
+
+    @swagger_auto_schema(
+        request_body=PhoneNumberSerializer,
+        operation_description="This endpoint sends code.",
+        responses={
+            200: 'Activation code has been sent to your phone number.',
+            400: 'User not found.'
+        }
+    )
+    def post(self, request):
+        serializer = PhoneNumberSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = User.objects.filter(phone_number=serializer.data['phone_number']).first()
+        if not user:
+            return Response(
+                {'message': 'User not found.'}, status=status.HTTP_400_BAD_REQUEST
+            )
+        verification_code = generate_verification_code()
+        user.verification_code = verification_code
+        user.save()
+        phone_number = user.phone_number
+        send_code(phone_number, verification_code)
+        return Response(
+            {'message': 'Activation code has been sent to your phone number.'},
             status=status.HTTP_200_OK
         )
