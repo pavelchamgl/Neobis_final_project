@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "auth"
+version = "0.1.0"
+description = ""
+authors = ["Pavel Ivanov <pavel.ivanov.060988@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+django = "^4.2.3"
+djangorestframework = "^3.14.0"
+python-dotenv = "^1.0.0"
+django-cors-headers = "^4.1.0"
+drf-yasg = "^1.21.6"
+djangorestframework-simplejwt = "^5.2.2"
+django-twilio = "^0.14.3.2"
+psycopg2-binary = "^2.9.6"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
